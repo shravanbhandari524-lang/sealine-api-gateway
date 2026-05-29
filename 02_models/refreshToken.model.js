@@ -13,7 +13,6 @@ const refershTokenSchema = new mongoose.Schema({
   role: {
     type: String,
     required: true,
-    unique: true,
   },
   revoked: {
     type: Boolean,
@@ -28,7 +27,6 @@ const refershTokenSchema = new mongoose.Schema({
     default: Date.now(),
   },
 });
-refershTokenSchema.index({ token_hash: 1 });
-refershTokenSchema.index({ user_id: 1 });
+
 const refreshTokenModel = mongoose.model("RefreshToken", refershTokenSchema);
 export default refreshTokenModel;

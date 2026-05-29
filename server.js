@@ -13,10 +13,21 @@ await connectdb();
 const app = express();
 app.set("trust proxy", 1);
 app.use(cookieParser());
+const allowedOrigins = [
+  "https://chatbot-aquavern.vercel.app",
+  "http://localhost:5173",
+];
+
 app.use(
   cors({
-    origin: "*", // exact frontend URL, not "*"
-    credentials: true, // allows cookies to be sent/received
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
   }),
 );
 app.use(express.json());
