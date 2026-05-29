@@ -57,7 +57,8 @@ export const loginUser = async (req, res) => {
       httpOnly: true,
       secure: true,
       sameSite: "None",
-      path: "/auth/refresh",
+      path: "/auth",
+      domain: "aquavern.com",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -75,5 +76,48 @@ export const loginUser = async (req, res) => {
     return res
       .status(500)
       .json({ success: false, message: "internal server error" });
+  }
+};
+
+export const logout = async (req, res) => {
+  const rawRefreshToken = req.cookies.refreshToken;
+
+  try {
+    if (!rawRefreshToken) {
+      return res
+        .status(401)
+        .json({ success: false, message: "no session found" });
+    }
+
+    const hashedRefreshToken = crypto
+      .createHash("sha256")
+      .update(rawRefreshToken)
+      .digest("hex");
+
+    await redis.del(`session:${hashedRefreshToken}`);
+
+    await refreshTokenModel.deleteOne({
+      token_hash: hashedRefreshToken,
+    });
+
+    res.clearCookie("refreshToken", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "None",
+      path: "/auth",
+      domain: "aquavern.com",
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "logged out successfully",
+    });
+  } catch (err) {
+    console.log(err);
+
+    return res.status(500).json({
+      success: false,
+      message: "internal server error",
+    });
   }
 };
